@@ -77,7 +77,7 @@ if [ "$npm_engine" != "null" ]; then
     status "npm `npm --version` already installed with node"
   else
     status "Downloading and installing npm $npm_engine (replacing version `npm --version`)..."
-    npm install --unsafe-perm --quiet -g npm@$npm_engine 2>&1 >/dev/null | indent
+    npm install --unsafe-perm --quiet -g npm@$npm_engine 2>&1 >/dev/null
   fi
   if [ "${npm_engine:0:1}" -lt "2" ]; then
     latest_npm=$(curl --silent --get https://semver.herokuapp.com/npm/stable)
@@ -125,7 +125,7 @@ fi
 if test -d $build_dir/node_modules; then
   status "Found existing node_modules directory; skipping cache"
   status "Rebuilding any native dependencies"
-  npm rebuild 2>&1 | indent
+  npm rebuild 2>&1
 else
   if test -d $cache_dir/node_modules; then
     status "Restoring node_modules directory from cache"
@@ -138,7 +138,7 @@ else
 
   if test -f $cache_dir/.heroku/node-version && [ $(cat $cache_dir/.heroku/node-version) != "$node_version" ]; then
     status "Node version changed since last build; rebuilding dependencies"
-    npm rebuild 2>&1 | indent
+    npm rebuild 2>&1
   fi
 fi
 
@@ -175,12 +175,12 @@ if [ "$GIT_SSH_KEY" != "" ]; then
 fi
 
 status "Pruning cached dependencies not specified in package.json"
-npm prune 2>&1 | indent
+npm prune 2>&1
 
 
 status "Installing dependencies"
 # Make npm output to STDOUT instead of its default STDERR
-npm install --quiet --no-optional --userconfig $build_dir/.npmrc 2>&1 | indent
+npm install --quiet --no-optional --userconfig $build_dir/.npmrc 2>&1
 
 PATH=$build_dir/node_modules/.bin:$PATH
 
@@ -188,15 +188,15 @@ if type bower > /dev/null 2>&1 || test -e $build_dir/node_modules/bower/bin/bowe
   status "Bower already exists"
 else
   status "Installing bower which is required by other dependencies"
-  npm install bower --save-dev --quiet --no-optional --userconfig $build_dir/.npmrc 2>&1 | indent
+  npm install bower --save-dev --quiet --no-optional --userconfig $build_dir/.npmrc 2>&1
 fi
 
 PATH=$build_dir/node_modules/bower/bin:$PATH
 
 status "Pruning cached bower dependencies not specified in bower.json"
-bower prune 2>&1 | indent
+bower prune 2>&1
 
-bower install --quiet | indent
+bower install --quiet
 
 # Add the project's and ember-cli's dependencies' binaries to the PATH
 PATH=$build_dir/node_modules/.bin:$build_dir/node_modules/ember-cli/node_modules/.bin:$PATH
@@ -225,7 +225,7 @@ if test -f $build_dir/hooks/before_hook.sh; then
 fi
 
 status "Building Ember CLI application $build_env distribution"
-$build_dir/node_modules/ember-cli/bin/ember build --environment $build_env | indent
+$build_dir/node_modules/ember-cli/bin/ember build --environment $build_env
 
 # For pages that rely on CSS but don't track fingerprinting
 status "Making non-fingerprinted copies of assets for distribution"
