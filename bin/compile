@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 set -e            # fail fast
-set -o pipefail   # don't ignore exit codes when piping output
+set -o pipefail   # don not ignore exit codes when piping output
 # set -x            # enable debugging
 
 build_dir=$1
@@ -113,6 +113,7 @@ cd $build_dir
 if [ "$REBUILD_ALL" == "true" ] || [ "$REBUILD_NODE_PACKAGES" == "true" ]; then
   status "Forcing rebuild of all node_modules. Pruning all node_modules."
   rm -rf $build_dir/node_modules $cache_dir/node_modules
+  rm -rf $build_dir/tmp/cache/node_modules $cache_dir/tmp/cache/node_modules
 fi
 
 if [ "$REBUILD_ALL" == "true" ] || [ "$REBUILD_BOWER_PACKAGES" == "true" ]; then
@@ -142,6 +143,22 @@ else
   fi
 fi
 
+# Restore NPM build cache from cache if it exists
+if test -d $build_dir/tmp/cache/node_modules; then
+  status "Found existing app/tmp/cache/node_modules directory; skipping cache"
+else
+  if test -d $cache_dir/tmp/cache/node_modules; then
+    status "Restoring tmp/cache/node_modules directory from cache"
+  else
+    status "Creating tmp/cache/node_modules cache directory"
+    mkdir -p $cache_dir/tmp/cache/node_modules
+  fi
+
+  mkdir -p $build_dir/tmp/cache/node_modules
+
+  ln -s $cache_dir/tmp/cache/node_modules $build_dir/tmp/cache/node_modules
+fi
+
 # Restore bower_components from cache if it exists
 if test -d $build_dir/bower_components; then
   status "Found existing bower_components directory; skipping cache"
@@ -155,7 +172,6 @@ else
 
   ln -s $cache_dir/bower_components $build_dir/bower_components
 fi
-
 
 if [ "$GIT_SSH_KEY" != "" ]; then
   status "Detected SSH key for git.  launching ssh-agent and loading key"
